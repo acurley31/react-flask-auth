@@ -2,22 +2,29 @@ import os
 import jwt
 import hashlib
 import datetime
+from react_flask_auth.settings import TOKEN_EXPIRATION_SECONDS
 
 
-def create_token(secret, payload={}, exp_seconds=5):
+def create_token(secret, payload={}, exp_seconds=TOKEN_EXPIRATION_SECONDS):
     '''Issue a token for a given payload'''
     
     now = datetime.datetime.utcnow()
     payload['iat'] = now.timestamp()
     payload['exp'] = payload['iat'] + exp_seconds
     token = jwt.encode(payload, secret, algorithm='HS256')
-    return token.encode('utf-8')
+    return token.decode('utf-8')
 
 
-def verify_token(token):
+def verify_token(token, secret):
     '''Check if a token is valid'''
 
-    print(token)
+    try:
+        payload = jwt.decode(token.encode('utf-8'), secret)
+        now = datetime.datetime.utcnow().timestamp()
+        exp = payload['exp']
+        return now < exp
+    except:
+        return False
     return False
 
 
